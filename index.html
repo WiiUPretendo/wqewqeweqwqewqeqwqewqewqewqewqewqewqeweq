@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronómetro en Directo</title>
+    <style>
+        body {
+            background-color: green;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #timer {
+            font-size: 5rem;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="timer">00:00:00</div>
+
+    <script>
+        let timerInterval;
+        let seconds = 0, minutes = 0, hours = 0;
+
+        function updateTimer() {
+            seconds++;
+            if (seconds === 60) {
+                seconds = 0;
+                minutes++;
+                if (minutes === 60) {
+                    minutes = 0;
+                    hours++;
+                }
+            }
+
+            document.getElementById('timer').textContent = 
+                (hours < 10 ? "0" + hours : hours) + ":" +
+                (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                (seconds < 10 ? "0" + seconds : seconds);
+        }
+
+        function startTimer() {
+            if (!timerInterval) {
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        async function checkLiveStatus() {
+            const apiKey = 'AIzaSyAe4QKtrX4iY3JjApMM4i5bd1vRbdD9JCU';
+            const channelId = 'UC8YZpHQ6MFErbxo1eq8wrUg';
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&eventType=live&key=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Error en la solicitud a la API');
+                }
+
+                const data = await response.json();
+                const isLive = data.items.length > 0;
+
+                if (isLive) {
+                    startTimer();
+                } else {
+                    stopTimer();
+                }
+            } catch (error) {
+                console.error('Error fetching live status:', error);
+            }
+        }
+
+        window.onload = function () {
+            checkLiveStatus(); // Comprobar el estado inmediatamente al cargar
+            setInterval(checkLiveStatus, 30000); // Comprobar cada 30 segundos
+        };
+    </script>
+</body>
+</html>
